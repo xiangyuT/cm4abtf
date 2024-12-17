@@ -168,7 +168,10 @@ cmr "demo abtf ssd-resnet50 cognata pytorch inference" --model=baseline_4MP_ss_a
 ### Build MLPerf loadgen
 
 ```bash
-cmr "get mlperf inference loadgen _copy" --version=main
+# Note(Xiangyu): Original command failed in our environment. Could use master branch to install loadgen.
+
+#cmr "get mlperf inference loadgen _copy" --version=main
+cmr "get mlperf inference loadgen " --version=master
 ```
 
 ### Run ABTF PyTorch model with loadgen
@@ -210,7 +213,7 @@ cm run script "generic loadgen python _onnxruntime" --samples=5 --modelpath=base
 We added simple example to do basic and automatic quantization of the model to int8 using [HugginFace's quanto package](https://github.com/huggingface/quanto):
 
 ```bash
-cm run script "demo abtf ssd-resnet50 cognata pytorch inference" 
+cm run script "demo abtf ssd-resnet50 cognata pytorch inference" \
      --ad.ml-model.model_code_git_branch=cognata \
      --model=baseline_8MP_ss_scales_all_ep60_state.pth \
      --config=baseline_8MP_ss_scales_all \

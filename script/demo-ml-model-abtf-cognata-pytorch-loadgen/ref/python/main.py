@@ -491,6 +491,7 @@ def main():
     if not last_timeing:
         last_timeing = runner.result_timing
     if args.accuracy:
+        # Note(Xiangyu): expected is always None here.
         post_proc.finalize(result_dict, ds, output_dir=args.output)
 
     add_results(final_results, "{}".format(scenario),
@@ -507,6 +508,7 @@ def main():
             json.dump(final_results, f, sort_keys=True, indent=4)
         if args.accuracy:
             print('Saving model output examples ...')
+            # Note(Xiangyu): Currently hard-coded to be 10002_Urban_Clear_Morning/Cognata_Camera_01_8M_png
             files = glob.glob(os.path.join(args.dataset_path, '10002_Urban_Clear_Morning', 'Cognata_Camera_01_8M_png', '*.png'))
             files = sorted(files)
             for pred_batch in runner.proc_results:

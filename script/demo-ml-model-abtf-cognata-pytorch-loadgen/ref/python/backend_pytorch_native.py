@@ -73,6 +73,7 @@ class BackendPytorchNative(backend.Backend):
     def predict(self, feed):
         # For ABTF
 
+        # Note(Xiangyu): Haven't supported batching yet. max_batchsize > 1 will crash.
         # Always first element for now (later may stack for batching)
         img = feed['image'][0]
 
