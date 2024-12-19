@@ -43,7 +43,7 @@ call ABTF\Scripts\activate.bat & set CM_REPOS=%CD%\ABTF\CM & cd ABTF\work
 
 ```bash
 cm pull repo mlcommons@cm4mlops --checkout=dev
-cm pull repo mlcommons@cm4abtf --checkout=dev
+cm pull repo xiangyuT@cm4abtf --checkout=cpu_1219
 ```
 
 ### Show installed CM repositories

@@ -24,6 +24,8 @@ from src.transform import SSDTransformer
 from src.utils import generate_dboxes, Encoder, colors, coco_classes
 from src.model import SSD, ResNet
 
+import openvino as ov
+
 # Cognata dataset labels
 import cognata_labels
 
@@ -76,55 +78,63 @@ def test(opt):
 
 
 
-    # Prepare PyTorch model
-    model = SSD(config.model, backbone=ResNet(config.model), num_classes=num_classes)
+    # # Prepare PyTorch model
+    # model = SSD(config.model, backbone=ResNet(config.model), num_classes=num_classes)
 
-    pretrained_model_file = opt.pretrained_model
+    # pretrained_model_file = opt.pretrained_model
 
-    checkpoint = torch.load(pretrained_model_file, map_location=torch.device(device))
-
-
-
-    if str(os.environ.get('CM_ABTF_EXPORT_MODEL_QUANTO','')).lower() in ['true', 'yes']:
-        # If model was quantized with quanto and saved, we need to prepare it after loading
-        import quanto
-        quanto.quantize(model, weights=quanto.qint8, activations=None)
+    # checkpoint = torch.load(pretrained_model_file, map_location=torch.device(device))
 
 
 
-    model.load_state_dict(checkpoint["model_state_dict"])
+    # if str(os.environ.get('CM_ABTF_EXPORT_MODEL_QUANTO','')).lower() in ['true', 'yes']:
+    #     # If model was quantized with quanto and saved, we need to prepare it after loading
+    #     import quanto
+    #     quanto.quantize(model, weights=quanto.qint8, activations=None)
 
 
-    if device=='cuda':
-        model.cuda()
+
+    # model.load_state_dict(checkpoint["model_state_dict"])
+    import openvino as ov
+    core = ov.Core()
+    converted_model = core.compile_model(opt.pretrained_model, "AUTO")
+    model = converted_model
+    input_layer_ir = model.input(0)
+    output_layer_ir_0 = model.output(0)
+    output_layer_ir_1 = model.output(1)
+    #core.save_model("~/heyang/ssd_resnet50.onnx")
+
+
+    # if device=='cuda':
+    #     model.cuda()
 
 
 
     # Set model to inference
-    model.eval()
+    # model.eval()
 
-    if 'quanto' not in pretrained_model_file:
-        copy_model_file = pretrained_model_file[:-4]+'_state.pth'
-        torch.save({'model_state_dict':model.state_dict()}, copy_model_file)
+    # if 'quanto' not in pretrained_model_file:
+    #     copy_model_file = pretrained_model_file[:-4]+'_state.pth'
+    #     torch.save({'model_state_dict':model.state_dict()}, copy_model_file)
 
     # Checking basic model quantization
     # https://github.com/huggingface/quanto/issues/136
-    if str(os.environ.get('CM_ABTF_QUANTIZE_WITH_HUGGINGFACE_QUANTO', '')).lower() in ['true','yes']:
+    # if str(os.environ.get('CM_ABTF_QUANTIZE_WITH_HUGGINGFACE_QUANTO', '')).lower() in ['true','yes']:
 
-        pretrained_model_file = pretrained_model_file[:-4]+'_hf_quanto_qint8.pth'
+    #     pretrained_model_file = pretrained_model_file[:-4]+'_hf_quanto_qint8.pth'
 
-        print ('')
-        print ('Attempting to quantize PyTorch model with Hugging Face quanto library and record to {}'.format(
-          pretrained_model_file))
+    #     print ('')
+    #     print ('Attempting to quantize PyTorch model with Hugging Face quanto library and record to {}'.format(
+    #       pretrained_model_file))
 
-        import quanto
+    #     import quanto
 
-        quanto.quantize(model, weights=quanto.qint8, activations=None)
+    #     quanto.quantize(model, weights=quanto.qint8, activations=None)
 
-        # When freezing a model, its float weights are replaced by quantized integer weights.
-        quanto.freeze(model)
+    #     # When freezing a model, its float weights are replaced by quantized integer weights.
+    #     quanto.freeze(model)
 
-        torch.save({'model_state_dict':model.state_dict()}, pretrained_model_file)
+    #     torch.save({'model_state_dict':model.state_dict()}, pretrained_model_file)
 
 
 
@@ -203,8 +213,16 @@ def test(opt):
             print ('Running ABTF PyTorch model ...')
 
             t1 = time.time()
-            
-            ploc, plabel = model(inp)
+            #import openvino as ov
+            #core = ov.Core()
+            #converted_model = ov.convert_model(model, example_input=inp)
+            #from openvino.runtime import save_model
+            #save_model(converted_model, "~/heyang/ssd_resnet50.xml")
+            # print(model([inp]).keys())
+            ploc = model([inp])[output_layer_ir_0]
+            plabel = model([inp])[output_layer_ir_1]
+            ploc = torch.from_numpy(ploc)
+            plabel = torch.from_numpy(plabel)
 
             print ('')
             print ('ploc:')
@@ -213,8 +231,8 @@ def test(opt):
             print ('plabel:')
             print (plabel)
 
-            # Grigori's note: decode_batch will update ploc2 - copy for later comparison with ONNX if needed
-            ploc_copy = copy.deepcopy(ploc)
+            # # Grigori's note: decode_batch will update ploc2 - copy for later comparison with ONNX if needed
+            # ploc_copy = copy.deepcopy(ploc)
 
             result = encoder.decode_batch(ploc, plabel, opt.nms_threshold, 20)[0]
 

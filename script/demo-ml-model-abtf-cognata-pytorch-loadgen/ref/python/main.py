@@ -16,14 +16,12 @@ import sys
 import threading
 import time
 from queue import Queue
-from PIL import Image
+
 import mlperf_loadgen as lg
 import numpy as np
-import cv2
-import glob
+
 import dataset
 import cognata
-import cognata_labels
 
 #import imagenet
 #import coco
@@ -40,10 +38,10 @@ MILLI_SEC = 1000
 # the datasets we support
 SUPPORTED_DATASETS = {
     "cognata-4mp-pt":
-        (cognata.Cognata, None, cognata.PostProcessCognataPt(0.5, 200, 0.05, 1440, 2560), 
+        (cognata.Cognata, None, cognata.PostProcessCognataPt(0.5, 20, 0.05, 1440, 2560), 
         {"image_size": [1440, 2560, 3]}),
     "cognata-8mp-pt":
-        (cognata.Cognata, None, cognata.PostProcessCognataPt(0.5, 200, 0.05, 2160, 3840), 
+        (cognata.Cognata, None, cognata.PostProcessCognataPt(0.5, 20, 0.05, 2160, 3840), 
         {"image_size": [2160, 3840, 3]})
 }
 
@@ -290,6 +288,7 @@ def add_results(final_results, name, result_dict, result_list, took, show_accura
 
     if result_dict["total"] == 0:
         result_dict["total"] = len(result_list)
+
     # this is what we record for each run
     result = {
         "took": took,
@@ -491,7 +490,6 @@ def main():
     if not last_timeing:
         last_timeing = runner.result_timing
     if args.accuracy:
-        # Note(Xiangyu): expected is always None here.
         post_proc.finalize(result_dict, ds, output_dir=args.output)
 
     add_results(final_results, "{}".format(scenario),
