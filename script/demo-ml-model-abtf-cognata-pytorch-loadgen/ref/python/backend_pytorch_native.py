@@ -89,8 +89,9 @@ class BackendPytorchNative(backend.Backend):
 
         with torch.no_grad():
             # ploc, plabel = self.model(inp)
-            ploc = self.model([inp])[self.output_layer_ir_0]
-            plabel = self.model([inp])[self.output_layer_ir_1]
+            p = self.model([inp])
+            ploc = p[self.output_layer_ir_0]
+            plabel = p[self.output_layer_ir_1]
             ploc = torch.from_numpy(ploc)
             plabel = torch.from_numpy(plabel)
 

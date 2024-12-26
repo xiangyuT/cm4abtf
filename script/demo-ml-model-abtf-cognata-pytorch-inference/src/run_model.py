@@ -214,8 +214,9 @@ def test(opt):
             t1 = time.time()
             
             # ploc, plabel = model(inp)
-            ploc = model([inp])[output_layer_ir_0]
-            plabel = model([inp])[output_layer_ir_1]
+            p = model([inp])
+            ploc = p[output_layer_ir_0]
+            plabel = p[output_layer_ir_1]
             ploc = torch.from_numpy(ploc)
             plabel = torch.from_numpy(plabel)
 
