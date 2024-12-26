@@ -161,7 +161,7 @@ def test(opt):
             # img = img.to(device)
             
             # pred = model(img).max(1)[1].cpu().numpy()[0] # HW
-            pred = model([img])[output_layer_ir_0].max(1)[0]
+            pred = (torch.from_numpy(model(img)[0])).max(1)[1].cpu().numpy()[0]
             # import pdb
             # pdb.set_trace()
             
