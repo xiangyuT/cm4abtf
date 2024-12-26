@@ -92,9 +92,9 @@ def test(opt):
         opt.num_classes = 19
         decode_fn = Waymo.decode_target
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu_id
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print("Device: %s" % device)
+    # os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu_id
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # print("Device: %s" % device)
 
     # Setup dataloader
     image_files = []
@@ -121,15 +121,15 @@ def test(opt):
         # model.load_state_dict(checkpoint["model_state"])
         # model = nn.DataParallel(model)
         # model.to(device)
-        model = core.compile_model(opt.ckpt, "AUTO")
+        model = core.compile_model(opt.ckpt, "NPU")
         input_layer_ir = model.input(0)
         output_layer_ir_0 = model.output(0)
         print("Resume model from %s" % opt.ckpt)
         # del checkpoint
-    else:
-        print("[!] Retrain")
-        model = nn.DataParallel(model)
-        model.to(device)
+    # else:
+    #     print("[!] Retrain")
+    #     model = nn.DataParallel(model)
+    #     model.to(device)
 
     #denorm = utils.Denormalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # denormalization for ori images
 
@@ -156,7 +156,7 @@ def test(opt):
             img_name = os.path.basename(img_path)[:-len(ext)-1]
             img = Image.open(img_path).convert('RGB')
             img = transform(img).unsqueeze(0) # To tensor of NCHW
-            img = img.to(device)
+            # img = img.to(device)
             
             # pred = model(img).max(1)[1].cpu().numpy()[0] # HW
             pred = model([img])[output_layer_ir_0].max(1)[0]
