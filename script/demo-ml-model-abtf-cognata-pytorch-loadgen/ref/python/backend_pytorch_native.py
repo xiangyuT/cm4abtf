@@ -64,7 +64,7 @@ class BackendPytorchNative(backend.Backend):
         # self.model = self.model.to(self.device)
         import openvino as ov
         core = ov.Core()
-        self.model = core.compile_model(model_path, "AUTO")
+        self.model = core.compile_model(model_path, "NPU")
         self.input_layer_ir = self.model.input(0)
         self.output_layer_ir_0 = self.model.output(0)
         self.output_layer_ir_1 = self.model.output(1)
