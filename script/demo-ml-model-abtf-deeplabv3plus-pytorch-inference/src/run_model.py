@@ -106,11 +106,11 @@ def test(opt):
     elif os.path.isfile(opt.input):
         image_files.append(opt.input)
     
-    # Set up model (all models are 'constructed at network.modeling)
-    model = network.modeling.__dict__[opt.model](num_classes=opt.num_classes, output_stride=opt.output_stride)
-    if opt.separable_conv and 'plus' in opt.model:
-        network.convert_to_separable_conv(model.classifier)
-    utils.set_bn_momentum(model.backbone, momentum=0.01)
+    # # Set up model (all models are 'constructed at network.modeling)
+    # model = network.modeling.__dict__[opt.model](num_classes=opt.num_classes, output_stride=opt.output_stride)
+    # if opt.separable_conv and 'plus' in opt.model:
+    #     network.convert_to_separable_conv(model.classifier)
+    # utils.set_bn_momentum(model.backbone, momentum=0.01)
     
     import openvino as ov
     core = ov.Core()
