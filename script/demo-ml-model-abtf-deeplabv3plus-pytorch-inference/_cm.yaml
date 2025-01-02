@@ -1,0 +1,150 @@
+# Written by Grigori Fursin
+
+alias: demo-ml-model-abtf-deeplabv3plus-pytorch-inference
+uid: 8a063cb8582a4a96
+
+automation_alias: script
+automation_uid: 5b4e0237da074764
+
+private: true
+
+category: Tests
+
+tags:
+- demo
+- abtf
+- ssd-resnet50
+- deeplabv3plus
+- pytorch
+- inference
+
+input_mapping:
+  input: CM_INPUT_IMAGE
+  output: CM_OUTPUT_PATH
+  model: CM_ML_MODEL_FILE_WITH_PATH
+  dataset: CM_ABTF_DATASET
+
+default_env:
+  CM_ABTF_DATASET: voc
+
+
+
+########################################################################
+deps:
+
+- tags: detect,os
+
+- tags: get,python3
+  names:
+  - python
+  - python3
+
+- tags: get,generic-python-lib,_numpy
+- tags: get,generic-python-lib,_package.typing-extensions
+- tags: get,generic-python-lib,_package.sympy
+- tags: get,generic-python-lib,_package.Pillow
+- tags: get,generic-python-lib,_opencv-python
+
+
+########################################################################
+# Install PyTorch for CPU or CUDA
+
+- enable_if_env:
+    CM_DEVICE:
+    - cpu
+  tags: get,generic-python-lib,_torch
+  names:
+  - torch
+
+- enable_if_env:
+    CM_DEVICE:
+    - cpu
+  tags: get,generic-python-lib,_torchvision
+  names:
+  - torchvision
+
+# CUDA
+- enable_if_env:
+    CM_DEVICE:
+    - cuda
+  tags: get,cuda
+  names:
+  - cuda
+
+- enable_if_env:
+    CM_DEVICE:
+    - cuda
+  tags: get,generic-python-lib,_torch_cuda
+  names:
+  - torch
+
+- enable_if_env:
+    CM_DEVICE:
+    - cuda
+  tags: get,generic-python-lib,_torchvision_cuda
+  names:
+  - torchvision
+
+
+# ########################################################################
+# # Download or import cognata dataset if CM_USE_DATASET==yes
+# - tags: get,dataset,raw,mlcommons-cognata
+#   names:
+#   - raw-dataset-mlcommons-cognata
+#   enable_if_env:
+#     CM_USE_DATASET:
+#     - 'yes'
+
+
+############################################################
+variations:
+  cpu:
+    group: device
+    default: True
+    env:
+      CM_DEVICE: cpu
+
+  cuda:
+    docker:
+      all_gpus: 'yes'
+      base_image: nvcr.io/nvidia/pytorch:24.03-py3
+    group:
+      device
+    env:
+      CM_DEVICE: cuda
+
+  dataset:
+    env:
+      CM_USE_DATASET: 'yes'
+
+
+############################################################
+input_description:
+  input: 
+    desc: input image (png)
+  output: 
+    desc: output image (png)
+  # export_model: 
+  #   desc: ONNX model name to be exported from PyTorch
+  # num-classes: 
+  #   desc: change number of classes (default = 13)
+
+
+# ############################################################
+# docker:
+#   skip_run_cmd: 'no'
+#   gh_token_required: True
+#   cm_repos: 'cm pull repo --url=https://oauth2:${CM_GH_TOKEN}@github.com/mlcommons/cm4abtf.git --checkout=dev'
+#   input_paths:
+#     - input
+#     - model
+#     - output
+#     - export_model_to_onnx
+#   skip_input_for_fake_run:
+#     - input
+#     - output
+#     - model
+#     - config
+#     - num_classes
+#     - export_model_to_onnx
+#     - export_model_to_onnx_opset

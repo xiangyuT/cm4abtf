@@ -50,18 +50,24 @@ class BackendPytorchNative(backend.Backend):
         self.config = importlib.import_module('config.' + abtf_model_config)
         self.image_size = self.config.model['image_size']
 
-        self.model = SSD(self.config.model, backbone=ResNet(self.config.model), num_classes=self.num_classes)
+        # self.model = SSD(self.config.model, backbone=ResNet(self.config.model), num_classes=self.num_classes)
 
-        checkpoint = torch.load(model_path, map_location=torch.device(self.device))
+        # checkpoint = torch.load(model_path, map_location=torch.device(self.device))
 
-        self.model.load_state_dict(checkpoint["model_state_dict"])
+        # self.model.load_state_dict(checkpoint["model_state_dict"])
 
-        if self.device.startswith('cuda'):
-            self.model.cuda()
+        # if self.device.startswith('cuda'):
+        #     self.model.cuda()
 
-        self.model.eval()
+        # self.model.eval()
 
-        self.model = self.model.to(self.device)
+        # self.model = self.model.to(self.device)
+        import openvino as ov
+        core = ov.Core()
+        self.model = core.compile_model(model_path, "NPU")
+        self.input_layer_ir = self.model.input(0)
+        self.output_layer_ir_0 = self.model.output(0)
+        self.output_layer_ir_1 = self.model.output(1)
 
         self.inputs = inputs
         self.outputs = outputs
@@ -82,7 +88,12 @@ class BackendPytorchNative(backend.Backend):
         inp = img.unsqueeze(dim=0)
 
         with torch.no_grad():
-            ploc, plabel = self.model(inp)
+            # ploc, plabel = self.model(inp)
+            p = self.model([inp])
+            ploc = p[self.output_layer_ir_0]
+            plabel = p[self.output_layer_ir_1]
+            ploc = torch.from_numpy(ploc)
+            plabel = torch.from_numpy(plabel)
 
             output = (ploc, plabel)
 
