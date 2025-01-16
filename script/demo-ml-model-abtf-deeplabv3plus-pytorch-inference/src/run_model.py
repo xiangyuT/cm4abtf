@@ -85,7 +85,6 @@ def test(opt):
 
     if opt.dataset.lower() == 'voc':
         opt.num_classes = 21
-        # opt.num_classes = 0
         decode_fn = VOCSegmentation.decode_target
     elif opt.dataset.lower() == 'cityscapes':
         opt.num_classes = 19
@@ -128,7 +127,7 @@ def test(opt):
         # model.to(device)
         model = core.read_model(opt.ckpt)
         model.reshape([1, 3, 513, 513])
-        model = core.compile_model(model, "NPU")
+        model = core.compile_model(model, "NPU", {"NPU_DPU_GROUPS":6})
         input_layer_ir = model.input(0)
         output_layer_ir_0 = model.output(0)
         print("Resume model from %s" % opt.ckpt)
@@ -182,8 +181,8 @@ def test(opt):
     
     end_time = time.perf_counter()
     total_time = (end_time-start_time)
-    print("Inference time: %.2f" % (total_time))
-    print("Average inference time: %.2f" % ((total_time)/len(image_files)))
+    print("Inference time: %.2fs" % (total_time))
+    print("Average inference time: %.2fs" % ((total_time)/len(image_files)))
 
 
 

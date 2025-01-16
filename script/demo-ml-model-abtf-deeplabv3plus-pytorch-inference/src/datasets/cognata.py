@@ -88,13 +88,16 @@ class Cognata(data.Dataset):
         self.transform = transform
         self.files = files
     
+    @classmethod
     def encode_target(cls, target):
         return cls.id_to_train_id[np.array(target)]
 
+    @classmethod
     def decode_target(cls, target):
         target[target == 255] = 19
         #target = target.astype('uint8') + 1
         return cls.train_id_to_color[target]
+    
     def __getitem__(self, index):
         """
         Args:
