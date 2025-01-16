@@ -29,12 +29,17 @@ import openvino as ov
 from datasets import VOCSegmentation, Cityscapes, cityscapes, Cognata, Waymo
 from metrics import StreamSegMetrics
 
+
+import time
+
 def get_args():
     parser = argparse.ArgumentParser()
 
     # Datset Options
     parser.add_argument("--input", type=str, required=True,
                         help="path to a single image or image directory")
+    parser.add_argument("--images_count", type=int, default=1,
+                        help="number of images to process")
     parser.add_argument("--dataset", type=str, default='voc',
                         choices=['voc', 'cityscapes', 'cognata', 'waymo'], help='Name of training set')
 
@@ -151,6 +156,12 @@ def test(opt):
             ])
     if opt.save_val_results_to is not None:
         os.makedirs(opt.save_val_results_to, exist_ok=True)
+    
+    if opt.images_count > 0:
+        image_files = image_files[:opt.images_count]
+
+    start_time = time.perf_counter()
+
     with torch.no_grad():
         # model = model.eval()
         for img_path in tqdm(image_files):
@@ -162,14 +173,17 @@ def test(opt):
             
             # pred = model(img).max(1)[1].cpu().numpy()[0] # HW
             pred = (torch.from_numpy(model(img)[0])).max(1)[1].cpu().numpy()[0]
-            # import pdb
-            # pdb.set_trace()
             
             colorized_preds = decode_fn(pred).astype('uint8')
             # colorized_preds = colorized_preds.squeeze()
             colorized_preds = Image.fromarray(colorized_preds)
             if opt.save_val_results_to:
                 colorized_preds.save(os.path.join(opt.save_val_results_to, img_name+'.png'))
+    
+    end_time = time.perf_counter()
+    total_time = (end_time-start_time)
+    print("Inference time: %.2f" % (total_time))
+    print("Average inference time: %.2f" % ((total_time)/len(image_files)))
 
 
 

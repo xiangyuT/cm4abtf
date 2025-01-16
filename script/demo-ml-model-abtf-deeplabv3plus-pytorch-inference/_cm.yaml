@@ -20,6 +20,7 @@ tags:
 
 input_mapping:
   input: CM_INPUT_IMAGE
+  images_count: CM_IMAGES_COUNT
   output: CM_OUTPUT_PATH
   model: CM_ML_MODEL_FILE_WITH_PATH
   dataset: CM_ABTF_DATASET

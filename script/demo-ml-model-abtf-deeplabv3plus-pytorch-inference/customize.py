@@ -23,6 +23,9 @@ def preprocess(i):
 
     if env.get('CM_INPUT_IMAGE', '')!='':
         extra += ' --input ' + env['CM_INPUT_IMAGE']
+    
+    if env.get('CM_IMAGES_COUNT', '')!='':
+        extra += ' --images_count ' + str(env['CM_IMAGES_COUNT'])
 
     if env.get('CM_OUTPUT_PATH', '')!='':
         extra += ' --save_val_results_to ' + env['CM_OUTPUT_PATH']
